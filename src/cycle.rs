@@ -1,55 +1,41 @@
-use crate::cities::City;
 use crate::edges::{Edge, Edges};
 use crate::universe::UniverseParams;
 use js_sys::Math::random;
 
 pub struct Ant {
-    visited: Vec<bool>,
-    location: usize,
+    pub visited: Vec<bool>,
+    pub location: usize,
 }
 
 pub struct Cycle<'a> {
-    cities: &'a [City],
-    edges: &'a Edges<'a>,
-    params: &'a UniverseParams,
-    time: usize,
-    ants: Vec<Ant>,
+    pub edges: &'a Edges,
+    pub params: UniverseParams,
+    pub time: usize,
+    pub ants: Vec<Ant>,
 }
 
 impl<'a> Cycle<'a> {
-    pub fn new(cities: &'a [City], edges: &'a Edges, params: &'a UniverseParams) -> Cycle<'a> {
-        let mut cycle = Cycle {
-            cities,
+    pub fn new(edges: &'a Edges, params: &UniverseParams) -> Self {
+        Cycle {
             edges,
-            params,
-            time: 0,
-            ants: (0..cities.len())
-                .map(|_| Ant {
-                    visited: vec![false; cities.len()],
-                    location: 0,
+            params: *params,
+            time: 1,
+            ants: (0..edges.values.len())
+                .map(|i| Ant {
+                    visited: (0..edges.values.len()).map(|j| i == j).collect(),
+                    location: i,
                 })
                 .collect(),
-        };
-        cycle.restart();
-        cycle
-    }
-
-    pub fn restart(&mut self) {
-        self.time = 1;
-        for (i, ant) in self.ants.iter_mut().enumerate() {
-            ant.location = i;
-            for (j, visited) in ant.visited.iter_mut().enumerate() {
-                *visited = i == j
-            }
         }
     }
 
     pub fn tick(&mut self) {
-        let &UniverseParams {
+        let UniverseParams {
             distance_importance,
             trail_importance,
             ..
         } = self.params;
+
         for ant in self.ants.iter_mut() {
             let adjacents: Vec<_> = self
                 .edges

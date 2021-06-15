@@ -2,6 +2,7 @@ use crate::cities::{generate as generate_cities, City};
 use crate::cycle::Cycle;
 use crate::edges::Edges;
 
+#[derive(Copy, Clone)]
 pub struct UniverseParams {
     // α
     pub trail_importance: f64,
@@ -15,25 +16,29 @@ pub struct UniverseParams {
     pub max_cycles: usize,
 }
 
-pub struct Universe<'a> {
-    cities: Vec<City>,
-    edges: Edges<'a>,
-    cycle: Cycle<'a>,
-    cycle_count: usize,
-    params: UniverseParams,
+pub struct Universe {
+    pub cities: Vec<City>,
+    pub edges: Edges,
+    pub cycle_count: usize,
+    pub params: UniverseParams,
 }
 
-impl<'a> Universe<'a> {
-    pub fn new(n: usize, params: UniverseParams) -> Box<Universe<'a>> {
+impl Universe {
+    pub fn new(n: usize, params: &UniverseParams) -> Self {
         let cities = generate_cities(n);
         let edges = Edges::new(&cities, &params);
-        let cycle = Cycle::new(&cities, &edges, &params);
-        Box::new(Universe {
+        Self {
             cities,
             edges,
-            cycle,
             cycle_count: 0,
-            params,
-        })
+            params: *params,
+        }
+    }
+
+    pub fn cycle(&mut self) {
+        let mut cycle = Cycle::new(&self.edges, &self.params);
+        while cycle.time < self.cities.len() {
+            cycle.tick();
+        }
     }
 }

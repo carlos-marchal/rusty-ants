@@ -19,5 +19,20 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn greet() {
-    alert("Hello, ants-tsp!");
+    let mut u = universe::Universe::new(
+        100,
+        &universe::UniverseParams {
+            // α
+            trail_importance: 0.0,
+            // β
+            distance_importance: 0.0,
+            // Q
+            distance_constant: 0.0,
+            // ρ
+            trail_decay: 0.0,
+            // NC_max
+            max_cycles: 10,
+        },
+    );
+    u.cycle();
 }

@@ -6,27 +6,24 @@ pub struct Edge {
     pub trail: f64,
 }
 
-pub struct Edges<'a> {
-    pub cities: &'a [City],
+pub struct Edges {
     pub values: Vec<Edge>,
-    pub params: &'a UniverseParams,
+    pub params: UniverseParams,
 }
 
-impl<'a> Edges<'a> {
-    pub fn new(cities: &'a [City], params: &'a UniverseParams) -> Self {
-        let values = (0..cities.len())
-            .map(|i| {
-                (0..i - 1).map(move |j| Edge {
-                    distance: cities[i].distance(&cities[j]),
-                    trail: 0.0,
-                })
-            })
-            .flatten()
-            .collect();
+impl Edges {
+    pub fn new(cities: &[City], params: &UniverseParams) -> Self {
         Self {
-            cities,
-            values,
-            params,
+            values: (0..cities.len())
+                .map(|i| {
+                    (0..i - 1).map(move |j| Edge {
+                        distance: cities[i].distance(&cities[j]),
+                        trail: 0.0,
+                    })
+                })
+                .flatten()
+                .collect(),
+            params: *params,
         }
     }
 
@@ -39,7 +36,7 @@ impl<'a> Edges<'a> {
         } else {
             (end, start)
         };
-        i * self.cities.len() + j - (i - 1) * i / 2
+        i * self.values.len() + j - (i - 1) * i / 2
     }
 
     pub fn get(&self, i: usize, j: usize) -> &Edge {
@@ -61,7 +58,7 @@ impl<'a> Edges<'a> {
     }
 
     pub fn adjacent_iter(&self, i: usize) -> impl Iterator<Item = (usize, &Edge)> {
-        (0..self.cities.len())
+        (0..self.values.len())
             .filter(move |&j| j == i)
             .map(move |j| (j, self.get(i, j)))
     }
