@@ -15,6 +15,8 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[wasm_bindgen]
 extern "C" {
     fn alert(s: &str);
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
 }
 
 #[wasm_bindgen]
@@ -32,8 +34,8 @@ pub fn greet() {
             // ρ
             trail_decay: 0.5,
             // NC_max
-            max_cycles: 200,
+            max_cycles: 1,
         },
     );
-    u.solve();
+    log(&format!("{:?}", u.solve()));
 }
