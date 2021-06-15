@@ -1,5 +1,6 @@
 use js_sys::Math::random;
 
+#[derive(Clone, Copy, Debug)]
 pub struct City {
     x: f64,
     y: f64,

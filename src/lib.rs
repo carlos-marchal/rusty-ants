@@ -19,20 +19,21 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn greet() {
-    let mut u = universe::Universe::new(
-        100,
+    utils::set_panic_hook();
+    let u = universe::Universe::new(
+        &cities::generate(30),
         &universe::UniverseParams {
             // α
-            trail_importance: 0.0,
+            trail_importance: 1.0,
             // β
-            distance_importance: 0.0,
+            distance_importance: 5.0,
             // Q
-            distance_constant: 0.0,
+            distance_constant: 100.0,
             // ρ
-            trail_decay: 0.0,
+            trail_decay: 0.5,
             // NC_max
-            max_cycles: 10,
+            max_cycles: 200,
         },
     );
-    u.cycle();
+    u.solve();
 }

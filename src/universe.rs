@@ -1,8 +1,8 @@
-use crate::cities::{generate as generate_cities, City};
-use crate::cycle::Cycle;
+use crate::cities::City;
+use crate::cycle::{Cycle, CycleResult};
 use crate::edges::Edges;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct UniverseParams {
     // α
     pub trail_importance: f64,
@@ -16,6 +16,7 @@ pub struct UniverseParams {
     pub max_cycles: usize,
 }
 
+#[derive(Clone, Debug)]
 pub struct Universe {
     pub cities: Vec<City>,
     pub edges: Edges,
@@ -24,21 +25,32 @@ pub struct Universe {
 }
 
 impl Universe {
-    pub fn new(n: usize, params: &UniverseParams) -> Self {
-        let cities = generate_cities(n);
+    pub fn new(cities: &[City], params: &UniverseParams) -> Self {
         let edges = Edges::new(&cities, &params);
         Self {
-            cities,
+            cities: cities.to_vec(),
             edges,
             cycle_count: 0,
             params: *params,
         }
     }
 
-    pub fn cycle(&mut self) {
-        let mut cycle = Cycle::new(&self.edges, &self.params);
-        while cycle.time < self.cities.len() {
-            cycle.tick();
+    pub fn cycle(&mut self) -> Option<CycleResult> {
+        if self.cycle_count < self.params.max_cycles {
+            let cycle = Cycle::new(&mut self.edges, &self.params);
+            let result = cycle.complete();
+            self.cycle_count += 1;
+            Some(result)
+        } else {
+            None
         }
+    }
+
+    pub fn solve(mut self) -> CycleResult {
+        let mut last_result: Option<CycleResult> = None;
+        while let Some(result) = self.cycle() {
+            last_result = Some(result);
+        }
+        last_result.unwrap()
     }
 }

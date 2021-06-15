@@ -1,11 +1,14 @@
 use crate::cities::*;
 use crate::universe::UniverseParams;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Edge {
     pub distance: f64,
     pub trail: f64,
+    pub trail_delta: f64,
 }
 
+#[derive(Clone, Debug)]
 pub struct Edges {
     pub values: Vec<Edge>,
     pub params: UniverseParams,
@@ -19,6 +22,7 @@ impl Edges {
                     (0..i - 1).map(move |j| Edge {
                         distance: cities[i].distance(&cities[j]),
                         trail: 0.0,
+                        trail_delta: 0.0,
                     })
                 })
                 .flatten()
@@ -49,23 +53,21 @@ impl Edges {
         &mut self.values[index]
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Edge> {
-        self.values.iter()
-    }
-
-    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Edge> {
-        self.values.iter_mut()
-    }
-
     pub fn adjacent_iter(&self, i: usize) -> impl Iterator<Item = (usize, &Edge)> {
         (0..self.values.len())
             .filter(move |&j| j == i)
             .map(move |j| (j, self.get(i, j)))
     }
 
-    pub fn update_trail(&mut self, i: usize, j: usize, trail_delta: f64) {
-        let evaporation_rate = self.params.trail_decay;
+    pub fn add_trail(&mut self, i: usize, j: usize, trail_delta: f64) {
         let edge = self.get_mut(i, j);
-        edge.trail = edge.trail * evaporation_rate + trail_delta;
+        edge.trail_delta += trail_delta;
+    }
+
+    pub fn apply_decay(&mut self) {
+        for edge in &mut self.values {
+            edge.trail += edge.trail * self.params.trail_decay + edge.trail_delta;
+            edge.trail_delta = 0.0;
+        }
     }
 }
