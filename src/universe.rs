@@ -16,6 +16,18 @@ pub struct UniverseParams {
     pub max_cycles: usize,
 }
 
+impl Default for UniverseParams {
+    fn default() -> Self {
+        Self {
+            trail_importance: 1.0,
+            distance_importance: 5.0,
+            distance_constant: 100.0,
+            trail_decay: 0.5,
+            max_cycles: 1,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Universe {
     pub cities: Vec<City>,

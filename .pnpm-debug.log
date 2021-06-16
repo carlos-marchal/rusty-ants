@@ -1,0 +1,14 @@
+{
+  "0 debug pnpm:scope": {
+    "selected": 1
+  },
+  "1 error pnpm": {
+    "code": "ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND",
+    "err": {
+      "name": "Error",
+      "message": "No package.json (or package.yaml, or package.json5) was found in \"/home/cmarchal/ants-tsp\".",
+      "code": "ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND",
+      "stack": "Error: No package.json (or package.yaml, or package.json5) was found in \"/home/cmarchal/ants-tsp\".\n    at readProjectManifest (/home/cmarchal/.nvm/versions/node/v14.16.1/pnpm-global/5/node_modules/.pnpm/pnpm@6.7.1/node_modules/pnpm/dist/pnpm.cjs:39642:13)\n    at async Object.readProjectManifestOnly (/home/cmarchal/.nvm/versions/node/v14.16.1/pnpm-global/5/node_modules/.pnpm/pnpm@6.7.1/node_modules/pnpm/dist/pnpm.cjs:39646:28)\n    at async Object.readProjectManifestOnly (/home/cmarchal/.nvm/versions/node/v14.16.1/pnpm-global/5/node_modules/.pnpm/pnpm@6.7.1/node_modules/pnpm/dist/pnpm.cjs:39865:24)\n    at async Object.handler (/home/cmarchal/.nvm/versions/node/v14.16.1/pnpm-global/5/node_modules/.pnpm/pnpm@6.7.1/node_modules/pnpm/dist/pnpm.cjs:120302:24)\n    at async Timeout._onTimeout (/home/cmarchal/.nvm/versions/node/v14.16.1/pnpm-global/5/node_modules/.pnpm/pnpm@6.7.1/node_modules/pnpm/dist/pnpm.cjs:124348:24)"
+    }
+  }
+}
