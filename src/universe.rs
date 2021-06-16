@@ -23,7 +23,7 @@ impl Default for UniverseParams {
             distance_importance: 5.0,
             distance_constant: 100.0,
             trail_decay: 0.5,
-            max_cycles: 1,
+            max_cycles: 100,
         }
     }
 }
