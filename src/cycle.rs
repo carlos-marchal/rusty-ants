@@ -1,6 +1,6 @@
-use crate::edges::{Edge, Edges};
+use crate::edges::Edges;
 use crate::universe::UniverseParams;
-use js_sys::Math::random;
+use rand::random;
 
 #[derive(Clone, Debug)]
 pub struct Ant {
@@ -24,7 +24,7 @@ pub struct CycleResult {
 
 impl<'a> Cycle<'a> {
     pub fn new(edges: &'a mut Edges, params: &UniverseParams) -> Self {
-        let n = edges.values.len();
+        let n = edges.n_cities;
         Cycle {
             edges,
             params: *params,
@@ -32,13 +32,16 @@ impl<'a> Cycle<'a> {
             ants: (0..n)
                 .map(|i| Ant {
                     visited: (0..n).map(|j| i == j).collect(),
-                    tour: vec![],
+                    tour: vec![i],
                 })
                 .collect(),
         }
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self) -> bool {
+        if self.time >= self.edges.n_cities {
+            return false;
+        }
         let UniverseParams {
             distance_importance,
             trail_importance,
@@ -46,29 +49,24 @@ impl<'a> Cycle<'a> {
         } = self.params;
 
         for ant in self.ants.iter_mut() {
-            let adjacents: Vec<_> = self
+            let adjacent_probability: Vec<_> = self
                 .edges
-                .adjacent_iter(*ant.tour.last().unwrap())
+                .adjacent(ant.tour[self.time - 1])
                 .filter(|&(i, _)| !ant.visited[i])
-                .map(
-                    |(
+                .map(|(i, edge)| {
+                    (
                         i,
-                        Edge {
-                            distance, trail, ..
-                        },
-                    )| {
-                        (
-                            i,
-                            distance.powf(distance_importance) * trail.powf(trail_importance),
-                        )
-                    },
-                )
+                        (1.0 / edge.distance).powf(distance_importance)
+                            * edge.trail.powf(trail_importance),
+                    )
+                })
                 .collect();
-            let sum: f64 = adjacents.iter().map(|(_, weight)| weight).sum();
+            let sum: f64 = adjacent_probability.iter().map(|(_, weight)| weight).sum();
 
-            let target = 1.0 - random();
+            let mut target: f64 = random();
+            target = 1.0 - target;
             let mut accumulated = 0.0;
-            for (index, weight) in adjacents {
+            for (index, weight) in adjacent_probability {
                 accumulated += weight / sum;
                 if accumulated >= target {
                     ant.visited[index] = true;
@@ -77,13 +75,13 @@ impl<'a> Cycle<'a> {
                 }
             }
         }
+        self.time += 1;
+        true
     }
 
     pub fn complete(mut self) -> CycleResult {
-        let n = self.edges.values.len();
-        while self.time < n {
-            self.tick();
-        }
+        // Execute all ticks in the cycle
+        while self.tick() {}
 
         let mut shortest_tour: Vec<usize> = vec![];
         let mut shortest_length = f64::INFINITY;
@@ -108,11 +106,51 @@ impl<'a> Cycle<'a> {
             }
         }
 
-        self.edges.apply_decay();
-
-        CycleResult {
+        let result = CycleResult {
             shortest_tour,
             shortest_length,
+        };
+        result
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::cities::City;
+    use crate::edges::Edges;
+
+    fn get_test_data() -> (Vec<City>, Edges) {
+        let cities = vec![
+            City { x: 0.0, y: 0.0 },
+            City { x: 1.0, y: 0.0 },
+            City { x: 2.0, y: 0.0 },
+            City { x: 3.0, y: 0.0 },
+            City { x: 4.0, y: 0.0 },
+            City { x: 5.0, y: 0.0 },
+            City { x: 0.0, y: 3.0 },
+        ];
+        let edges = Edges::new(&cities, &Default::default());
+        (cities, edges)
+    }
+
+    #[test]
+    fn it_places_one_ant_per_city() {
+        let (cities, mut edges) = get_test_data();
+        let cycle = Cycle::new(&mut edges, &Default::default());
+        assert_eq!(cycle.ants.len(), cities.len());
+        let mut seen = vec![false; cities.len()];
+        for ant in cycle.ants {
+            assert_eq!(ant.tour.len(), 1);
+            seen[ant.tour[0]] = true;
         }
+        assert!(seen.iter().all(|&seen| seen));
+    }
+
+    #[test]
+    fn it_applies_time_correctly() {
+        let (cities, mut edges) = get_test_data();
+        let mut cycle = Cycle::new(&mut edges, &Default::default());
+        cycle.tick();
     }
 }

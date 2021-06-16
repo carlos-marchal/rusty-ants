@@ -1,4 +1,4 @@
-use js_sys::Math::random;
+use rand::random;
 
 #[derive(Clone, Copy, Debug)]
 pub struct City {

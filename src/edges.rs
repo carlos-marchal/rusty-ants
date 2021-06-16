@@ -10,7 +10,7 @@ pub struct Edge {
 
 #[derive(Clone, Debug)]
 pub struct Edges {
-    pub n: usize,
+    pub n_cities: usize,
     pub values: Vec<Edge>,
     pub params: UniverseParams,
 }
@@ -18,21 +18,21 @@ pub struct Edges {
 impl Edges {
     pub fn new(cities: &[City], params: &UniverseParams) -> Self {
         let params = *params;
-        let n = cities.len();
-        if n < 2 {
+        let n_cities = cities.len();
+        if n_cities < 2 {
             Self {
-                n,
+                n_cities,
                 values: vec![],
                 params,
             }
         } else {
             Self {
-                n,
-                values: (1..n)
+                n_cities,
+                values: (1..n_cities)
                     .map(|i| {
                         (0..i).map(move |j| Edge {
                             distance: cities[i].distance(&cities[j]),
-                            trail: 0.0,
+                            trail: 1.0,
                             trail_delta: 0.0,
                         })
                     })
@@ -64,9 +64,9 @@ impl Edges {
         &mut self.values[index]
     }
 
-    pub fn adjacent_iter(&self, i: usize) -> impl Iterator<Item = (usize, &Edge)> {
+    pub fn adjacent(&self, i: usize) -> impl Iterator<Item = (usize, &Edge)> {
         (0..i)
-            .chain(i + 1..self.n)
+            .chain(i + 1..self.n_cities)
             .map(move |j| (j, self.get(i, j)))
     }
 
@@ -77,7 +77,7 @@ impl Edges {
 
     pub fn apply_decay(&mut self) {
         for edge in &mut self.values {
-            edge.trail += edge.trail * self.params.trail_decay + edge.trail_delta;
+            edge.trail = edge.trail * self.params.trail_decay + edge.trail_delta;
             edge.trail_delta = 0.0;
         }
     }
@@ -100,7 +100,7 @@ mod test {
     }
 
     #[test]
-    fn values_is_flattened_lower_triangular_matrix() {
+    fn it_stores_values_in_flattened_lower_triangular_matrix() {
         let sizes: Vec<isize> = vec![0, 1, 2, 3, 4, 5, 20, 50, 1000];
         for n in sizes {
             let edges = Edges::new(
@@ -113,7 +113,7 @@ mod test {
     }
 
     #[test]
-    fn get_returns_correct_edge() {
+    fn it_gets_correct_edge() {
         let cities = get_test_cities();
         let edges = Edges::new(&cities, &Default::default());
         for (i, j, result) in vec![
@@ -131,12 +131,48 @@ mod test {
     }
 
     #[test]
-    fn adjacent_iter_returns_correct_edges() {
+    fn it_returns_adjacent_edge_iterator() {
         let cities = get_test_cities();
         let edges = Edges::new(&cities, &Default::default());
         for i in 0..cities.len() {
             let adjacent = (0..i).chain(i + 1..cities.len()).map(|j| edges.get(i, j));
-            assert!(edges.adjacent_iter(i).map(|(_, edge)| edge).eq(adjacent));
+            assert!(edges.adjacent(i).map(|(_, edge)| edge).eq(adjacent));
         }
+    }
+
+    #[test]
+    fn it_accumulates_trail() {
+        let cities = get_test_cities();
+        let mut edges = Edges::new(&cities, &Default::default());
+        let mut old_edges = edges.clone();
+        for (i, j, delta) in vec![(0, 4, 10.0), (1, 0, 0.0), (1, 0, 100.0), (1, 3, -1.0)] {
+            edges.add_trail(i, j, delta);
+            let index = edges.get_flattened_index(i, j);
+            for (i, (new, old)) in edges.values.iter().zip(old_edges.values.iter()).enumerate() {
+                if i == index {
+                    assert_eq!(old.trail_delta + delta, new.trail_delta);
+                } else {
+                    assert_eq!(old.trail_delta, new.trail_delta);
+                }
+                assert_eq!(old.distance, new.distance);
+                assert_eq!(old.trail, new.trail);
+            }
+            old_edges = edges.clone();
+        }
+    }
+
+    #[test]
+    fn it_applies_trail_decay() {
+        let cities = vec![City { x: 0.0, y: 0.0 }, City { x: 1.0, y: 1.0 }];
+        let params: UniverseParams = Default::default();
+        let mut edges = Edges::new(&cities, &params);
+        let trail = 10.0;
+        let delta = 4.0;
+        edges.values[0].trail = trail;
+        edges.add_trail(0, 1, delta);
+        edges.apply_decay();
+        let expected = trail * params.trail_decay + delta;
+        assert_eq!(edges.values[0].trail, expected);
+        assert_eq!(edges.values[0].trail_delta, 0.0);
     }
 }

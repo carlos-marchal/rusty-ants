@@ -51,6 +51,7 @@ impl Universe {
         if self.cycle_count < self.params.max_cycles {
             let cycle = Cycle::new(&mut self.edges, &self.params);
             let result = cycle.complete();
+            self.edges.apply_decay();
             self.cycle_count += 1;
             Some(result)
         } else {
@@ -65,4 +66,26 @@ impl Universe {
         }
         last_result.unwrap()
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn get_test_data() -> Vec<City> {
+         vec![
+            City { x: 0.0, y: 0.0 },
+            City { x: 1.0, y: 1.0 },
+            City { x: 1.0, y: 0.0 },
+            City { x: 0.0, y: 1.0 },
+            City { x: 0.5, y: 10.0 },
+        ]
+    }
+
+    // #[test]
+    // fn aaa() {
+    //     let cities = get_test_data();
+    //     let universe = Universe::new(&cities, &Default::default());
+    //     let result = universe.solve();
+    // }
 }
