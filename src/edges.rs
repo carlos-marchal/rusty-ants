@@ -3,9 +3,9 @@ use crate::universe::UniverseParams;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Edge {
-    pub distance: f64,
-    pub trail: f64,
-    pub trail_delta: f64,
+    pub distance: f32,
+    pub trail: f32,
+    pub trail_delta: f32,
 }
 
 #[derive(Clone, Debug)]
@@ -70,7 +70,7 @@ impl Edges {
             .map(move |j| (j, self.get(i, j)))
     }
 
-    pub fn add_trail(&mut self, i: usize, j: usize, trail_delta: f64) {
+    pub fn add_trail(&mut self, i: usize, j: usize, trail_delta: f32) {
         let edge = self.get_mut(i, j);
         edge.trail_delta += trail_delta;
     }

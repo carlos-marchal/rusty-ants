@@ -2,12 +2,12 @@ use rand::random;
 
 #[derive(Clone, Copy, Debug)]
 pub struct City {
-    pub x: f64,
-    pub y: f64,
+    pub x: f32,
+    pub y: f32,
 }
 
 impl City {
-    pub fn distance(&self, city: &Self) -> f64 {
+    pub fn distance(&self, city: &Self) -> f32 {
         let dx = self.x - city.x;
         let dy = self.y - city.y;
         (dx * dx + dy * dy).sqrt()

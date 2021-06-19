@@ -23,7 +23,25 @@ pub struct Instance {
 #[derive(Clone, Debug)]
 pub struct CycleResult {
     pub shortest_tour: Vec<usize>,
-    pub shortest_length: f64,
+    pub shortest_length: f32,
+}
+
+fn fast_pow(base: f32, exp: f32) -> f32 {
+    if exp % 1.0 < 1e-5 {
+        let mut exp = exp as usize;
+        let mut result = base;
+        if exp % 2 != 0 {
+            result *= base;
+            exp -= 1;
+        }
+        while exp > 1 {
+            result *= result;
+            exp >>= 1;
+        }
+        result
+    } else {
+        f32::powf(base, exp)
+    }
 }
 
 impl Instance {
@@ -60,7 +78,7 @@ impl Instance {
     }
 
     fn tick(&mut self) -> bool {
-        if self.time >= self.edges.n_cities {
+        if self.time >= self.n {
             return false;
         }
         let UniverseParams {
@@ -70,31 +88,32 @@ impl Instance {
         } = self.params;
 
         for ant in self.ants.iter_mut() {
-            let adjacent_probability: Vec<_> = self
-                .edges
-                .adjacent(ant.tour[self.time - 1])
-                .filter(|&(i, _)| !ant.visited[i])
-                .map(|(i, edge)| {
-                    (
-                        i,
-                        (1.0 / edge.distance).powf(distance_importance)
-                            * edge.trail.powf(trail_importance),
-                    )
-                })
-                .collect();
-            let sum: f64 = adjacent_probability.iter().map(|(_, weight)| weight).sum();
-
-            let mut target: f64 = random();
-            target = 1.0 - target;
-            let mut accumulated = 0.0;
-            for (index, weight) in adjacent_probability {
-                accumulated += weight / sum;
-                if accumulated >= target {
-                    ant.visited[index] = true;
-                    ant.tour.push(index);
-                    break;
+            let mut adjacent_probability: Vec<(usize, f32)> = Vec::with_capacity(self.n - 1);
+            for (city, edge) in self.edges.adjacent(ant.tour[self.time - 1]) {
+                if !ant.visited[city] {
+                    adjacent_probability.push((
+                        city,
+                        fast_pow(1.0 / edge.distance, distance_importance)
+                            * fast_pow(edge.trail, trail_importance),
+                    ))
                 }
             }
+            let sum: f32 = adjacent_probability.iter().map(|(_, weight)| weight).sum();
+            let mut next_city = adjacent_probability[0].0;
+            if sum != 0.0 {
+                let mut target: f32 = random();
+                target = 1.0 - target;
+                let mut accumulated = 0.0;
+                for &(index, weight) in &adjacent_probability {
+                    accumulated += weight / sum;
+                    if accumulated >= target {
+                        next_city = index;
+                        break;
+                    }
+                }
+            }
+            ant.visited[next_city] = true;
+            ant.tour.push(next_city);
         }
         self.time += 1;
         true
@@ -105,7 +124,7 @@ impl Instance {
         while self.tick() {}
 
         let mut shortest_tour: Option<&[usize]> = None;
-        let mut shortest_length = f64::INFINITY;
+        let mut shortest_length = f32::INFINITY;
         for ant in &mut self.ants {
             let mut tour_length = 0.0;
             ant.tour.push(ant.tour[0]);
@@ -122,7 +141,7 @@ impl Instance {
             }
             if tour_length < shortest_length {
                 shortest_length = tour_length;
-                shortest_tour = Some(&ant.tour);
+                shortest_tour = Some(tour);
             }
         }
 

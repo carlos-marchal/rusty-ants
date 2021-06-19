@@ -1,13 +1,13 @@
 #[derive(Copy, Clone, Debug)]
 pub struct UniverseParams {
     // α
-    pub trail_importance: f64,
+    pub trail_importance: f32,
     // β
-    pub distance_importance: f64,
+    pub distance_importance: f32,
     // Q
-    pub distance_constant: f64,
+    pub distance_constant: f32,
     // ρ
-    pub trail_decay: f64,
+    pub trail_decay: f32,
     // NC_max
     pub max_cycles: usize,
 }

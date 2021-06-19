@@ -21,10 +21,13 @@ extern "C" {
     fn log(s: &str);
 }
 
-fn to_canvas_coords(x: f64, y: f64) -> (f64, f64) {
+fn to_canvas_coords(x: f32, y: f32) -> (f64, f64) {
     let available_size = size - radius;
     let padding = radius / 2.0;
-    (x * available_size + padding, y * available_size + padding)
+    (
+        x as f64 * available_size + padding,
+        y as f64 * available_size + padding,
+    )
 }
 
 const size: f64 = 800.0;
@@ -41,7 +44,7 @@ fn print_city(context: &web_sys::CanvasRenderingContext2d, city: &cities::City) 
 //     context.begin_path();
 //     let (start_x, start_y) = to_canvas_coords(a.x, a.y);
 //     let (end_x, end_y) = to_canvas_coords(b.x, b.y);
-//     context.arc(x, y, radius, 0.0, 2.0 * std::f64::consts::PI);
+//     context.arc(x, y, radius, 0.0, 2.0 * std::f32::consts::PI);
 //     context.fill();
 // }
 
