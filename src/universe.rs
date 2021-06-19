@@ -21,9 +21,9 @@ impl Default for UniverseParams {
         Self {
             trail_importance: 1.0,
             distance_importance: 5.0,
-            distance_constant: 100.0,
+            distance_constant: 10000.0,
             trail_decay: 0.5,
-            max_cycles: 100,
+            max_cycles: 500,
         }
     }
 }
@@ -73,7 +73,7 @@ mod test {
     use super::*;
 
     fn get_test_data() -> Vec<City> {
-         vec![
+        vec![
             City { x: 0.0, y: 0.0 },
             City { x: 1.0, y: 1.0 },
             City { x: 1.0, y: 0.0 },
