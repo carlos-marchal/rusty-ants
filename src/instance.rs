@@ -29,16 +29,20 @@ pub struct CycleResult {
 fn fast_pow(base: f32, exp: f32) -> f32 {
     if exp % 1.0 < 1e-5 {
         let mut exp = exp as usize;
-        let mut result = base;
-        if exp % 2 != 0 {
-            result *= base;
-            exp -= 1;
+        if exp == 1 {
+            base
+        } else {
+            let mut result = base;
+            if exp % 2 != 0 {
+                result *= base;
+                exp -= 1;
+            }
+            while exp > 1 {
+                result *= result;
+                exp >>= 1;
+            }
+            result
         }
-        while exp > 1 {
-            result *= result;
-            exp >>= 1;
-        }
-        result
     } else {
         f32::powf(base, exp)
     }
