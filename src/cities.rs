@@ -1,6 +1,6 @@
 use rand::random;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub struct City {
     pub x: f32,
     pub y: f32,
