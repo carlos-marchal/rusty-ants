@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "module": "commonJS",
+    "target": "es6",
+    "alwaysStrict": true,
+    "checkJs": true,
+    "types": ["../pkg"]
+  }
+}
