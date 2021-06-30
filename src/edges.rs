@@ -76,8 +76,9 @@ impl Edges {
     }
 
     pub fn apply_decay(&mut self) {
+        let multiplier = 1.0 - self.params.trail_decay;
         for edge in &mut self.values {
-            edge.trail = edge.trail * self.params.trail_decay + edge.trail_delta;
+            edge.trail = edge.trail * multiplier + edge.trail_delta;
             edge.trail_delta = 0.0;
         }
     }

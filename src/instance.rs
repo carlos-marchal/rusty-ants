@@ -98,26 +98,32 @@ impl Instance {
                     adjacent_probability.push((
                         city,
                         fast_pow(1.0 / edge.distance, distance_importance)
-                            * fast_pow(edge.trail, trail_importance),
+                            * fast_pow(edge.trail, trail_importance)
+                            + 1.0,
                     ))
                 }
             }
             let sum: f32 = adjacent_probability.iter().map(|(_, weight)| weight).sum();
-            let mut next_city = adjacent_probability[0].0;
-            if sum != 0.0 {
-                let mut target: f32 = random();
-                target = 1.0 - target;
-                let mut accumulated = 0.0;
-                for &(index, weight) in &adjacent_probability {
-                    accumulated += weight / sum;
-                    if accumulated >= target {
-                        next_city = index;
-                        break;
-                    }
+            let mut cumulative_probability: Vec<(usize, f32)> =
+                Vec::with_capacity(adjacent_probability.len());
+            for (city, probability) in adjacent_probability {
+                let accumulated = cumulative_probability
+                    .last()
+                    .map(|&(_, value)| value)
+                    .unwrap_or(0.0);
+                cumulative_probability.push((city, accumulated + probability / sum));
+            }
+            let target: f32 = random();
+            let mut assigned = false;
+            for (city, accumulated) in cumulative_probability {
+                if accumulated > target {
+                    ant.visited[city] = true;
+                    ant.tour.push(city);
+                    assigned = true;
+                    break;
                 }
             }
-            ant.visited[next_city] = true;
-            ant.tour.push(next_city);
+            assert!(assigned);
         }
         self.time += 1;
         true

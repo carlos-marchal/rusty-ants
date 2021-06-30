@@ -24,12 +24,13 @@ function paint_city(city) {
 }
 
 /** @param {City} from @param {City} to */
-function paint_edge(from, to) {
+function paint_edge(from, to, color = "rgb(0, 0, 0)") {
   const { x: from_x, y: from_y } = to_canvas_coords(from);
   const { x: to_x, y: to_y } = to_canvas_coords(to);
   canvas_context.beginPath();
   canvas_context.moveTo(from_x, from_y);
   canvas_context.lineTo(to_x, to_y);
+  canvas_context.strokeStyle = color;
   canvas_context.stroke();
 }
 
@@ -61,11 +62,29 @@ start_button.addEventListener("click", async () => {
     for (const city of cities) {
       paint_city(city);
     }
-    const tour = result.tour;
-    for (let i = 1; i < tour.length; ++i) {
-      paint_edge(cities[tour[i - 1]], cities[tour[i]]);
+    const trails = [];
+    for (let i = 0; i < cities.length - 1; ++i) {
+      for (let j = i + 1; j < cities.length; ++j) {
+        trails.push({ i, j, trail: result.trails[j][i] });
+      }
     }
+    const trailValues = trails.map(({ trail }) => trail);
+    const max = Math.max(...trailValues);
+    const min = Math.min(...trailValues);
+    const sum = trailValues.reduce((sum, next) => sum + next);
+    for (const trail of trails) {
+      const alpha = trail.trail / max;
+      paint_edge(
+        cities[trail.i],
+        cities[trail.j],
+        `rgba(240, 172, 0, ${alpha})`
+      );
+    }
+    console.log(max, min, sum);
   } while (!result.done);
+  for (let i = 1; i < result.tour.length; ++i) {
+    paint_edge(cities[result.tour[i - 1]], cities[result.tour[i]]);
+  }
   input.disabled = false;
   start_button.disabled = false;
 });
