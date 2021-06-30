@@ -51,7 +51,7 @@ fn fast_pow(base: f32, exp: f32) -> f32 {
 impl Instance {
     pub fn new(cities: &[City], params: &UniverseParams) -> Self {
         let n = cities.len();
-        let mut cycle = Self {
+        let mut instance = Self {
             n,
             cities: cities.to_vec(),
             edges: Edges::new(&cities, params),
@@ -66,8 +66,8 @@ impl Instance {
                 n
             ],
         };
-        cycle.reset_cycle();
-        cycle
+        instance.reset_cycle();
+        instance
     }
 
     fn reset_cycle(&mut self) {
@@ -92,27 +92,30 @@ impl Instance {
         } = self.params;
 
         for ant in self.ants.iter_mut() {
-            let mut adjacent_probability: Vec<(usize, f32)> = Vec::with_capacity(self.n - 1);
+            let mut adjacent_weights = Vec::with_capacity(self.n - 1);
             for (city, edge) in self.edges.adjacent(ant.tour[self.time - 1]) {
                 if !ant.visited[city] {
-                    adjacent_probability.push((
+                    adjacent_weights.push((
                         city,
                         fast_pow(1.0 / edge.distance, distance_importance)
                             * fast_pow(edge.trail, trail_importance)
-                            + 1.0,
+                            // Add small value in case all weights round down to 0 due
+                            // to floating point precision loss
+                            + 1e-6,
                     ))
                 }
             }
-            let sum: f32 = adjacent_probability.iter().map(|(_, weight)| weight).sum();
-            let mut cumulative_probability: Vec<(usize, f32)> =
-                Vec::with_capacity(adjacent_probability.len());
-            for (city, probability) in adjacent_probability {
+            let sum: f32 = adjacent_weights.iter().map(|(_, weight)| weight).sum();
+
+            let mut cumulative_probability = Vec::with_capacity(adjacent_weights.len());
+            for (city, probability) in adjacent_weights {
                 let accumulated = cumulative_probability
                     .last()
                     .map(|&(_, value)| value)
                     .unwrap_or(0.0);
                 cumulative_probability.push((city, accumulated + probability / sum));
             }
+
             let target: f32 = random();
             let mut assigned = false;
             for (city, accumulated) in cumulative_probability {
@@ -165,22 +168,6 @@ impl Instance {
         self.reset_cycle();
 
         result
-    }
-
-    pub fn solve(mut self) -> CycleResult {
-        let mut best_result: Option<CycleResult> = None;
-        while self.cycle_count < self.params.max_cycles {
-            let result = self.cycle();
-            match &best_result {
-                None => best_result = Some(result),
-                Some(solution) => {
-                    if solution.shortest_length > result.shortest_length {
-                        best_result = Some(result)
-                    }
-                }
-            }
-        }
-        best_result.unwrap()
     }
 }
 

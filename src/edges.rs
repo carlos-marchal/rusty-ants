@@ -19,34 +19,25 @@ impl Edges {
     pub fn new(cities: &[City], params: &UniverseParams) -> Self {
         let params = *params;
         let n_cities = cities.len();
-        if n_cities < 2 {
-            Self {
-                n_cities,
-                values: vec![],
-                params,
-            }
-        } else {
-            Self {
-                n_cities,
-                values: (1..n_cities)
-                    .map(|i| {
-                        (0..i).map(move |j| Edge {
-                            distance: cities[i].distance(&cities[j]),
-                            trail: 1.0,
-                            trail_delta: 0.0,
-                        })
+        assert!(cities.len() > 2);
+        Self {
+            n_cities,
+            values: (1..n_cities)
+                .map(|i| {
+                    (0..i).map(move |j| Edge {
+                        distance: cities[i].distance(&cities[j]),
+                        trail: 0.0,
+                        trail_delta: 0.0,
                     })
-                    .flatten()
-                    .collect(),
-                params,
-            }
+                })
+                .flatten()
+                .collect(),
+            params,
         }
     }
 
     fn get_flattened_index(&self, start: usize, end: usize) -> usize {
-        if start == end {
-            panic!("tried to access an edge on the diagonal (from i to i)")
-        }
+        assert_ne!(start, end);
         let (i, j) = if start > end {
             (start, end)
         } else {
