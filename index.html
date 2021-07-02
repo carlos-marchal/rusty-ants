@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+      as="style"
+    />
+    <link rel="icon" href="demo/favicon.svg" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rusty Ants Demo</title>
@@ -29,7 +35,7 @@
       </p>
       <form id="controls">
         <label>
-          Number of cities
+          Number of cities:
           <input
             disabled
             id="number_cities"
@@ -40,7 +46,7 @@
           />
         </label>
         <label>
-          Show pheromone trail
+          Show pheromone trail:
           <input disabled id="show_pheromones" type="checkbox" checked />
         </label>
         <button disabled id="start_button" type="submit">Go!</button>

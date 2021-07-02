@@ -3,7 +3,11 @@
 :root {
   background: #fdfff5;
   font-family: "Montserrat", sans-serif;
-  font-size: 15px;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html,
@@ -11,6 +15,10 @@ body {
   height: 100%;
   padding: 0;
   margin: 0;
+}
+
+h1 {
+  margin-bottom: 0;
 }
 
 a {
@@ -28,9 +36,46 @@ main {
 
 body {
   display: grid;
+  --body-margin: 16px;
+  margin: 0 var(--body-margin);
   justify-items: center;
   grid-template-rows: auto 1fr;
 }
 
 canvas {
+  max-height: 100%;
+  min-height: 0;
+  padding: 10px 0 20px 0;
+}
+
+form {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 20px;
+}
+
+button {
+  width: 50px;
+}
+
+input[type="number"] {
+  width: 60px;
+  margin-left: 10px;
+}
+
+@media (max-width: 600px) {
+  canvas {
+    min-height: auto;
+    max-width: calc(95vw - var(--body-margin));
+    margin: 0 auto;
+  }
+
+  form {
+    grid-auto-flow: row;
+    gap: 8px;
+  }
+
+  button {
+    width: 100%;
+  }
 }
