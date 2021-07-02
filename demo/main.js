@@ -82,7 +82,7 @@ controls.addEventListener("submit", async (event) => {
         paint_edge(
           cities[trail.i],
           cities[trail.j],
-          `rgba(240, 172, 0, ${alpha})`
+          `rgba(255, 117, 20, ${alpha})`
         );
       }
     } else {
