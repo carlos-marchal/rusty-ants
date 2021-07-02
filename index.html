@@ -4,20 +4,48 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rusty Ants Demo</title>
-    <script src="demo-scripts/main.js" defer></script>
+    <script src="demo/main.js" defer></script>
+    <link rel="stylesheet" href="demo/styles.css" />
   </head>
   <body>
     <main>
-      <canvas id="cities" width="800" height="800"></canvas>
-      <input
-        disabled
-        id="number_cities"
-        value="10"
-        max="200"
-        min="3"
-        type="number"
-      />
-      <button disabled id="start_button" type="button">Go!</button>
+      <h1>Rusty Ants</h1>
+      <p>
+        This is an implementation of the ant colony algorithm for solving the
+        TSP. It simulates several independent agents that try to find the best
+        tours. These “ants” make choices based on two inputs: how short an edge
+        is, and how favourable it has been to other ants. In order to share the
+        second type of information, each iteration the “ants” leave pheromones
+        on the edges, in proportion to how successful their tour has been.
+      </p>
+      <p>
+        It is a computationally demanding algorithm, with O(n³) time complexity.
+        A perfect use case for WebAssembly, it is written in Rust and compiled
+        with the necessary glue code to run it and this demo page.
+        <a href="https://github.com/carlos-marchal/rusty-ants">
+          The repo is hosted on Github.</a
+        >
+        Try it below!
+      </p>
+      <form id="controls">
+        <label>
+          Number of cities
+          <input
+            disabled
+            id="number_cities"
+            value="50"
+            max="200"
+            min="3"
+            type="number"
+          />
+        </label>
+        <label>
+          Show pheromone trail
+          <input disabled id="show_pheromones" type="checkbox" checked />
+        </label>
+        <button disabled id="start_button" type="submit">Go!</button>
+      </form>
     </main>
+    <canvas id="cities" width="800" height="800"></canvas>
   </body>
 </html>

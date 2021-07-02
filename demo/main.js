@@ -35,14 +35,20 @@ function paint_edge(from, to, color = "rgb(0, 0, 0)") {
 }
 
 /** @type {HTMLInputElement} */
-const input = document.querySelector("#number_cities");
+const number_cities = document.querySelector("#number_cities");
+/** @type {HTMLInputElement} */
+const show_pheromones = document.querySelector("#show_pheromones");
 /** @type {HTMLButtonElement} */
 const start_button = document.querySelector("#start_button");
+/** @type {HTMLFormElement} */
+const controls = document.querySelector("#controls");
 
-start_button.addEventListener("click", async () => {
-  input.disabled = true;
+controls.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  number_cities.disabled = true;
+  show_pheromones.disabled = true;
   start_button.disabled = true;
-  const worker = new Worker("/demo-scripts/worker.js");
+  const worker = new Worker("/demo/worker.js");
   function nextResult() {
     return new Promise((resolve) =>
       worker.addEventListener("message", (event) => resolve(event.data), {
@@ -51,7 +57,7 @@ start_button.addEventListener("click", async () => {
     );
   }
   canvas_context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  worker.postMessage(Number.parseInt(input.value, 10));
+  worker.postMessage(Number.parseInt(number_cities.value, 10));
   /** @type {City[]} */
   let cities = await nextResult();
   /** @type { wasm_bindgen.HandlerResult } */
@@ -62,31 +68,36 @@ start_button.addEventListener("click", async () => {
     for (const city of cities) {
       paint_city(city);
     }
-    const trails = [];
-    for (let i = 0; i < cities.length - 1; ++i) {
-      for (let j = i + 1; j < cities.length; ++j) {
-        trails.push({ i, j, trail: result.trails[j][i] });
+    if (show_pheromones.checked) {
+      const trails = [];
+      for (let i = 0; i < cities.length - 1; ++i) {
+        for (let j = i + 1; j < cities.length; ++j) {
+          trails.push({ i, j, trail: result.trails[j][i] });
+        }
+      }
+      const trailValues = trails.map(({ trail }) => trail);
+      const max = Math.max(...trailValues);
+      for (const trail of trails) {
+        const alpha = trail.trail / max;
+        paint_edge(
+          cities[trail.i],
+          cities[trail.j],
+          `rgba(240, 172, 0, ${alpha})`
+        );
+      }
+    } else {
+      for (let i = 1; i < result.tour.length; ++i) {
+        paint_edge(cities[result.tour[i - 1]], cities[result.tour[i]]);
       }
     }
-    const trailValues = trails.map(({ trail }) => trail);
-    const max = Math.max(...trailValues);
-    const min = Math.min(...trailValues);
-    const sum = trailValues.reduce((sum, next) => sum + next);
-    for (const trail of trails) {
-      const alpha = trail.trail / max;
-      paint_edge(
-        cities[trail.i],
-        cities[trail.j],
-        `rgba(240, 172, 0, ${alpha})`
-      );
-    }
-    console.log(max, min, sum);
   } while (!result.done);
   for (let i = 1; i < result.tour.length; ++i) {
     paint_edge(cities[result.tour[i - 1]], cities[result.tour[i]]);
   }
-  input.disabled = false;
+  number_cities.disabled = false;
+  show_pheromones.disabled = false;
   start_button.disabled = false;
 });
-input.disabled = false;
+number_cities.disabled = false;
+show_pheromones.disabled = false;
 start_button.disabled = false;
