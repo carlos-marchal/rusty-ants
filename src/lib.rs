@@ -99,7 +99,7 @@ impl SolveHandler {
                 .map(|i| {
                     (0..i)
                         .chain(i + 1..self.instance.n)
-                        .map(|j| self.instance.edges.get(i, j).trail)
+                        .map(|j| self.instance.edges.values[i][j].total_trail)
                         .collect()
                 })
                 .collect(),
