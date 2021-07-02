@@ -1,7 +1,7 @@
 mod cities;
 mod edges;
 mod instance;
-mod universe;
+mod parameters;
 mod utils;
 
 use js_sys::Date;

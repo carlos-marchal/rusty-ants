@@ -1,6 +1,6 @@
 use crate::cities::City;
 use crate::edges::Edges;
-use crate::universe::Parameters;
+use crate::parameters::Parameters;
 use rand::random;
 
 #[derive(Clone, Debug)]

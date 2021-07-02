@@ -1,5 +1,5 @@
 use crate::cities::*;
-use crate::universe::Parameters;
+use crate::parameters::Parameters;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Edge {
