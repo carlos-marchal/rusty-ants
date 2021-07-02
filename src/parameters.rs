@@ -1,5 +1,5 @@
 #[derive(Copy, Clone, Debug)]
-pub struct UniverseParams {
+pub struct Parameters {
     // α
     pub trail_importance: f32,
     // β
@@ -12,7 +12,7 @@ pub struct UniverseParams {
     pub max_cycles: usize,
 }
 
-impl Default for UniverseParams {
+impl Default for Parameters {
     fn default() -> Self {
         Self {
             trail_importance: 1.0,

@@ -1,5 +1,5 @@
 use crate::cities::*;
-use crate::universe::UniverseParams;
+use crate::universe::Parameters;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Edge {
@@ -12,11 +12,11 @@ pub struct Edge {
 pub struct Edges {
     pub n_cities: usize,
     pub values: Vec<Edge>,
-    pub params: UniverseParams,
+    pub params: Parameters,
 }
 
 impl Edges {
-    pub fn new(cities: &[City], params: &UniverseParams) -> Self {
+    pub fn new(cities: &[City], params: &Parameters) -> Self {
         let params = *params;
         let n_cities = cities.len();
         assert!(cities.len() > 2);
@@ -156,7 +156,7 @@ mod test {
     #[test]
     fn it_applies_trail_decay() {
         let cities = vec![City { x: 0.0, y: 0.0 }, City { x: 1.0, y: 1.0 }];
-        let params: UniverseParams = Default::default();
+        let params: Parameters = Default::default();
         let mut edges = Edges::new(&cities, &params);
         let trail = 10.0;
         let delta = 4.0;

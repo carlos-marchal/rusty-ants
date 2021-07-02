@@ -1,6 +1,6 @@
 use crate::cities::City;
 use crate::edges::Edges;
-use crate::universe::UniverseParams;
+use crate::universe::Parameters;
 use rand::random;
 
 #[derive(Clone, Debug)]
@@ -15,7 +15,7 @@ pub struct Instance {
     pub cities: Vec<City>,
     pub edges: Edges,
     pub cycle_count: usize,
-    pub params: UniverseParams,
+    pub params: Parameters,
     pub time: usize,
     pub ants: Vec<Ant>,
 }
@@ -49,7 +49,7 @@ fn fast_pow(base: f32, exp: f32) -> f32 {
 }
 
 impl Instance {
-    pub fn new(cities: &[City], params: &UniverseParams) -> Self {
+    pub fn new(cities: &[City], params: &Parameters) -> Self {
         let n = cities.len();
         let mut instance = Self {
             n,
@@ -85,7 +85,7 @@ impl Instance {
         if self.time >= self.n {
             return false;
         }
-        let UniverseParams {
+        let Parameters {
             distance_importance,
             trail_importance,
             ..
