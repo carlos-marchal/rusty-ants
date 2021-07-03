@@ -1,8 +1,9 @@
 [package]
-name = "rusty-ants"
+name = "rusty-tsp"
 version = "0.1.0"
 authors = ["cmarchal"]
 edition = "2018"
+description = "a"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

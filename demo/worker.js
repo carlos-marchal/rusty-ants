@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
-importScripts("/pkg/rusty_ants.js");
+importScripts("/pkg/rusty_tsp.js");
 
 self.addEventListener("message", async (event) => {
-  await wasm_bindgen("../pkg/rusty_ants_bg.wasm");
+  await wasm_bindgen("../pkg/rusty_tsp_bg.wasm");
   const { SolveHandler } = wasm_bindgen;
   /** @type {City[]} */
   const cities = event.data;
