@@ -34,9 +34,9 @@ export class SolveHandler {
 }
 "#;
 
-// #[wasm_bindgen]
+#[wasm_bindgen]
 pub struct SolveHandler {
-    pub instance: instance::Instance,
+    instance: instance::Instance,
     update_interval: f64,
     next_update: f64,
 }
@@ -54,9 +54,9 @@ pub struct HandlerResult {
     tour: Vec<usize>,
 }
 
-// #[wasm_bindgen]
+#[wasm_bindgen]
 impl SolveHandler {
-    // #[wasm_bindgen(skip_typescript, constructor)]
+    #[wasm_bindgen(skip_typescript, constructor)]
     pub fn new(init: JsValue, update_interval: Option<f64>) -> Self {
         utils::set_panic_hook();
         let init: HandlerInit = from_value(init).unwrap();
@@ -71,41 +71,23 @@ impl SolveHandler {
         }
     }
 
-    // #[wasm_bindgen(skip_typescript, getter = cities)]
+    #[wasm_bindgen(skip_typescript, getter = cities)]
     pub fn get_cities(&self) -> JsValue {
-        to_value(&self.instance.cities).unwrap()
+        to_value(&self.instance.get_cities()).unwrap()
     }
 
-    // #[wasm_bindgen(skip_typescript)]
+    #[wasm_bindgen(skip_typescript)]
     pub fn run(&mut self) -> JsValue {
-        let mut result = self.instance.cycle();
-        while Date::now() < self.next_update && !result.done {
-            result = self.instance.cycle();
+        let mut improved = true;
+        while Date::now() < self.next_update && improved {
+            improved = self.instance.try_improvement();
         }
+        let solution = self.instance.get_solution();
         self.next_update = Date::now() + self.update_interval;
         to_value(&HandlerResult {
-            done: result.done,
-            tour: result.shortest_tour,
+            done: !improved,
+            tour: solution.tour,
         })
         .unwrap()
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    pub fn test() {
-        utils::set_panic_hook();
-        let cities = cities::generate(20);
-        let mut handler = SolveHandler {
-            instance: instance::Instance::new(&cities),
-            update_interval: 200.0,
-            next_update: 0.0,
-        };
-        let mut result = handler.instance.cycle();
-        while  !result.done {
-            result = handler.instance.cycle();
-        }
     }
 }

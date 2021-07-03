@@ -22,3 +22,25 @@ pub fn generate(n: usize) -> Vec<City> {
         })
         .collect()
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_calculates_distances_correctly() {
+        for (a, b, result) in vec![
+            ((0.0, 0.0), (0.0, 0.0), 0.0),
+            ((1.0, 0.0), (0.0, 0.0), 1.0),
+            ((0.0, 0.0), (0.0, 1.0), 1.0),
+            ((-1.0, 0.0), (0.0, 0.0), 1.0),
+            ((10.0, 0.0), (-10.0, 0.0), 20.0),
+            ((1.0, 0.0), (0.0, -1.0), (1.4142135623730951)),
+        ] {
+            assert_eq!(
+                City { x: a.0, y: a.1 }.distance(&City { x: b.0, y: b.1 }),
+                result
+            )
+        }
+    }
+}

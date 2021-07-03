@@ -3,106 +3,87 @@ use crate::edges::Edges;
 
 #[derive(Debug)]
 pub struct Instance {
-    pub n: usize,
-    pub cities: Vec<City>,
-    pub edges: Edges,
-    pub tour: Vec<usize>,
-    pub cycle_count: usize,
+    n: usize,
+    cities: Vec<City>,
+    edges: Edges,
+    tour: Vec<usize>,
+    tour_length: f32,
+    done: bool,
 }
 
 #[derive(Clone, Debug)]
-pub struct CycleResult {
-    pub shortest_tour: Vec<usize>,
-    pub done: bool,
+pub struct Solution {
+    pub tour: Vec<usize>,
+    pub tour_length: f32,
 }
-
-type Combination = (usize, usize, usize);
 
 impl Instance {
     pub fn new(cities: &[City]) -> Self {
-        Self {
-            n: cities.len(),
-            cities: cities.to_vec(),
-            edges: Edges::new(&cities),
-            tour: (0..cities.len()).collect(),
-            cycle_count: 0,
-        }
-    }
-
-    pub fn combinations(&self) -> impl Iterator<Item = Combination> {
-        let n = self.n;
-        (0..n)
-            .map(move |i| {
-                (i + 2..n).map(move |j| {
-                    let end = if i > 0 { n + 1 } else { n };
-                    (j + 2..end).map(move |k| (i, j, k))
-                })
+        let n = cities.len();
+        let cities = cities.to_vec();
+        let edges = Edges::new(&cities);
+        let tour: Vec<_> = (0..cities.len()).collect();
+        let tour_length = tour
+            .windows(2)
+            .map(|window| match window {
+                &[start, end] => edges.distances[start][end],
+                _ => unreachable!(),
             })
-            .flatten()
-            .flatten()
+            .sum::<f32>()
+            + edges.distances[n - 1][0];
+        Self {
+            n,
+            cities,
+            edges,
+            tour,
+            tour_length,
+            done: false,
+        }
     }
 
-    pub fn try_combination(&mut self, combination: &Combination) -> bool {
-        let &(i, j, k) = combination;
-        let a = self.tour[if i == 0 { self.tour.len() - 1 } else { i }];
-        let b = self.tour[i];
-        let c = self.tour[j - 1];
-        let d = self.tour[j];
-        let e = self.tour[k - 1];
-        let f = self.tour[k % self.tour.len()];
-
-        let distances = &self.edges.distances;
-        let current = distances[a][b] + distances[c][d] + distances[e][f];
-
-        let first_try = distances[a][c] + distances[b][d] + distances[e][f];
-        if first_try < current {
-            println!("first");
-            self.tour[i..j].reverse();
-            return true;
-        }
-
-        let second_try = distances[a][b] + distances[c][e] + distances[d][f];
-        if second_try < current {
-            println!("second");
-            self.tour[j..k].reverse();
-            return true;
-        }
-
-        let third_try = distances[a][d] + distances[e][b] + distances[c][f];
-        if third_try < current {
-            println!("third");
-            self.tour[i..k].reverse();
-            return true;
-        }
-
-        let fourth_try = distances[f][b] + distances[c][d] + distances[e][a];
-        if fourth_try < current {
-            println!("fourth");
-            let reversal: Vec<usize> = self.tour[j..k]
-                .iter()
-                .chain(self.tour[i..j].iter()).cloned()
-                .collect();
-            self.tour.splice(i..k, reversal);
-            return true;
-        }
-
-        return false;
+    pub fn is_done(&self) -> bool {
+        return self.done;
     }
 
-    pub fn cycle(&mut self) -> CycleResult {
-        for combination in self.combinations() {
-            let improved = self.try_combination(&combination);
-            println!("improved");
-            if improved {
-                return CycleResult {
-                    shortest_tour: self.tour.to_vec(),
-                    done: false,
-                };
+    pub fn get_cities(&self) -> &[City] {
+        &self.cities
+    }
+
+    pub fn get_solution(&self) -> Solution {
+        Solution {
+            tour: self.tour.to_owned(),
+            tour_length: self.tour_length,
+        }
+    }
+
+    pub fn try_improvement(&mut self) -> bool {
+        if self.done {
+            return false;
+        }
+        for i in 0..(self.n - 1) {
+            for j in (i + 1)..self.n {
+                // Handle the special case where we would reverse the whole
+                // array.
+                if i == 0 && j == self.n - 1 {
+                    continue;
+                }
+                let outer_start = self.tour[(i + self.n - 1) % self.n];
+                let inner_start = self.tour[i];
+                let inner_end = self.tour[j];
+                let outer_end = self.tour[(j + 1) % self.n];
+                let removed_cost = self.edges.distances[outer_start][inner_start]
+                    + self.edges.distances[inner_end][outer_end];
+                let added_cost = self.edges.distances[outer_start][inner_end]
+                    + self.edges.distances[inner_start][outer_end];
+                let delta = added_cost - removed_cost;
+                if delta < 0.0 {
+                    self.tour[i..(j + 1)].reverse();
+                    self.tour_length += delta;
+                    return true;
+                }
             }
         }
-        CycleResult {
-            shortest_tour: self.tour.to_vec(),
-            done: true,
-        }
+        self.done = true;
+        return true;
     }
 }
