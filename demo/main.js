@@ -48,7 +48,7 @@ const tour_length = document.querySelector("#tour_length");
 
 /** @type {City[]} */
 let cities;
-function reset_cities() {
+function reset() {
   let n = Number.parseInt(number_cities.value, 10);
   if (Number.isInteger(n)) {
     cities = new Array(n)
@@ -59,9 +59,11 @@ function reset_cities() {
       paint_city(city);
     }
   }
+  time.innerText = "0.0";
+  tour_length.innerText = "-";
 }
-reset_cities();
-number_cities.addEventListener("input", reset_cities);
+reset();
+number_cities.addEventListener("input", reset);
 
 controls.addEventListener("submit", async (event) => {
   event.preventDefault();
