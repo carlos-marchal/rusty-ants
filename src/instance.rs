@@ -41,10 +41,6 @@ impl Instance {
         }
     }
 
-    pub fn is_done(&self) -> bool {
-        return self.done;
-    }
-
     pub fn get_cities(&self) -> &[City] {
         &self.cities
     }

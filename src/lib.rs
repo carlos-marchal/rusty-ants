@@ -20,16 +20,14 @@ export interface City {
   y: number;
 }
 
-export type HandlerInit = City[] | number;
-
 export type HandlerResult = {
   done: boolean;
   tour: number[];
+  tour_length: number;
 };
 
 export class SolveHandler {
-  constructor(init: HandlerInit, update_interval?: number);
-  cities: City[];
+  constructor(cities: City[], update_interval?: number);
   run(): HandlerResult;
 }
 "#;
@@ -42,38 +40,23 @@ pub struct SolveHandler {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-#[serde(untagged)]
-pub enum HandlerInit {
-    Fixed(Vec<cities::City>),
-    Random(usize),
-}
-
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct HandlerResult {
     done: bool,
     tour: Vec<usize>,
+    tour_length: f32,
 }
 
 #[wasm_bindgen]
 impl SolveHandler {
     #[wasm_bindgen(skip_typescript, constructor)]
-    pub fn new(init: JsValue, update_interval: Option<f64>) -> Self {
+    pub fn new(cities: JsValue, update_interval: Option<f64>) -> Self {
         utils::set_panic_hook();
-        let init: HandlerInit = from_value(init).unwrap();
-        let cities = match init {
-            HandlerInit::Fixed(cities) => cities,
-            HandlerInit::Random(size) => cities::generate(size),
-        };
+        let cities: Vec<cities::City> = from_value(cities).unwrap();
         SolveHandler {
             instance: instance::Instance::new(&cities),
-            update_interval: update_interval.unwrap_or(200.0),
+            update_interval: update_interval.unwrap_or(100.0),
             next_update: 0.0,
         }
-    }
-
-    #[wasm_bindgen(skip_typescript, getter = cities)]
-    pub fn get_cities(&self) -> JsValue {
-        to_value(&self.instance.get_cities()).unwrap()
     }
 
     #[wasm_bindgen(skip_typescript)]
@@ -87,6 +70,7 @@ impl SolveHandler {
         to_value(&HandlerResult {
             done: !improved,
             tour: solution.tour,
+            tour_length: solution.tour_length,
         })
         .unwrap()
     }

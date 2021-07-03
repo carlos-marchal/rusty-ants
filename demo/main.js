@@ -1,5 +1,3 @@
-//
-
 /** @type {HTMLCanvasElement} */
 const canvas = document.querySelector("#cities");
 const canvas_context = canvas.getContext("2d");
@@ -24,30 +22,53 @@ function paint_city(city) {
 }
 
 /** @param {City} from @param {City} to */
-function paint_edge(from, to, color = "rgb(0, 0, 0)") {
+function paint_edge(from, to) {
   const { x: from_x, y: from_y } = to_canvas_coords(from);
   const { x: to_x, y: to_y } = to_canvas_coords(to);
   canvas_context.beginPath();
   canvas_context.moveTo(from_x, from_y);
   canvas_context.lineTo(to_x, to_y);
-  canvas_context.strokeStyle = color;
   canvas_context.stroke();
+}
+
+function clear_canvas() {
+  canvas_context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 }
 
 /** @type {HTMLInputElement} */
 const number_cities = document.querySelector("#number_cities");
-/** @type {HTMLInputElement} */
-const show_pheromones = document.querySelector("#show_pheromones");
 /** @type {HTMLButtonElement} */
 const start_button = document.querySelector("#start_button");
 /** @type {HTMLFormElement} */
 const controls = document.querySelector("#controls");
+/** @type {HTMLSpanElement} */
+const time = document.querySelector("#time");
+/** @type {HTMLSpanElement} */
+const tour_length = document.querySelector("#tour_length");
+
+/** @type {City[]} */
+let cities;
+function reset_cities() {
+  let n = Number.parseInt(number_cities.value, 10);
+  if (Number.isInteger(n)) {
+    cities = new Array(n)
+      .fill()
+      .map(() => ({ x: Math.random(), y: Math.random() }));
+    clear_canvas();
+    for (const city of cities) {
+      paint_city(city);
+    }
+  }
+}
+reset_cities();
+number_cities.addEventListener("input", reset_cities);
 
 controls.addEventListener("submit", async (event) => {
   event.preventDefault();
   number_cities.disabled = true;
-  show_pheromones.disabled = true;
   start_button.disabled = true;
+  time.innerText = "0.0";
+  tour_length.innerText = "-";
   const worker = new Worker("/demo/worker.js");
   function nextResult() {
     return new Promise((resolve) =>
@@ -57,47 +78,28 @@ controls.addEventListener("submit", async (event) => {
     );
   }
   canvas_context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  worker.postMessage(Number.parseInt(number_cities.value, 10));
-  /** @type {City[]} */
-  let cities = await nextResult();
+  worker.postMessage(cities);
   /** @type { wasm_bindgen.HandlerResult } */
   let result;
+  let start = Date.now();
   do {
     result = await nextResult();
-    canvas_context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    clear_canvas();
     for (const city of cities) {
       paint_city(city);
     }
-    if (show_pheromones.checked) {
-      const trails = [];
-      // for (let i = 0; i < cities.length - 1; ++i) {
-      //   for (let j = i + 1; j < cities.length; ++j) {
-      //     trails.push({ i, j, trail: result.trails[j][i] });
-      //   }
-      // }
-      const trailValues = trails.map(({ trail }) => trail);
-      const max = Math.max(...trailValues);
-      for (const trail of trails) {
-        const alpha = trail.trail / max;
-        paint_edge(
-          cities[trail.i],
-          cities[trail.j],
-          `rgba(255, 117, 20, ${alpha})`
-        );
-      }
-    } else {
-      for (let i = 1; i < result.tour.length; ++i) {
-        paint_edge(cities[result.tour[i - 1]], cities[result.tour[i]]);
-      }
+    for (let i = 1; i < result.tour.length; ++i) {
+      paint_edge(cities[result.tour[i - 1]], cities[result.tour[i]]);
     }
+    paint_edge(
+      cities[result.tour[result.tour.length - 1]],
+      cities[result.tour[0]]
+    );
+    time.innerText = ((Date.now() - start) / 1000).toFixed(1);
+    tour_length.innerText = result.tour_length.toFixed(1);
   } while (!result.done);
-  for (let i = 1; i < result.tour.length; ++i) {
-    paint_edge(cities[result.tour[i - 1]], cities[result.tour[i]]);
-  }
   number_cities.disabled = false;
-  show_pheromones.disabled = false;
   start_button.disabled = false;
 });
 number_cities.disabled = false;
-show_pheromones.disabled = false;
 start_button.disabled = false;

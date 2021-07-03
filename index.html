@@ -9,29 +9,22 @@
     <link rel="icon" href="demo/favicon.svg" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rusty Ants Demo</title>
+    <title>Rusty TSP</title>
     <script src="demo/main.js" defer></script>
     <link rel="stylesheet" href="demo/styles.css" />
   </head>
   <body>
     <main>
-      <h1>Rusty Ants</h1>
+      <h1>Rusty TSP</h1>
       <p>
-        This is an implementation of the ant colony algorithm for solving the
-        TSP. It simulates several independent agents that try to find the best
-        tours. These “ants” make choices based on two inputs: how short an edge
-        is, and how favourable it has been to other ants. In order to share the
-        second type of information, each iteration the “ants” leave pheromones
-        on the edges, in proportion to how successful their tour has been.
-      </p>
-      <p>
-        It is a computationally demanding algorithm, with O(n³) time complexity.
-        A perfect use case for WebAssembly, it is written in Rust and compiled
-        with the necessary glue code to run it and this demo page.
-        <a href="https://github.com/carlos-marchal/rusty-ants">
-          The repo is hosted on Github.</a
-        >
-        Try it below!
+        This is an implementation of 2-opt for solving the TSP. It is a very
+        predictable algorithm in terms of behaviour, but still a computationally
+        demanding algorithm for most devices. A perfect use case for
+        WebAssembly, it is written in Rust and compiled with the necessary glue
+        code to run it and this demo page. The
+        <a href="https://github.com/carlos-marchal/rusty-ants">repo</a> is
+        hosted on <a href="https://github.com/carlos-marchal">my Github</a>. Try
+        it below!
       </p>
       <form id="controls">
         <label>
@@ -39,18 +32,28 @@
           <input
             disabled
             id="number_cities"
-            value="50"
-            max="200"
+            value="800"
             min="3"
+            max="5000"
             type="number"
           />
         </label>
-        <label>
-          Show pheromone trail:
-          <input disabled id="show_pheromones" type="checkbox" checked />
-        </label>
         <button disabled id="start_button" type="submit">Go!</button>
       </form>
+      <table aria-live="polite">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Tour length</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span id="time">0.0</span>s</td>
+            <td id="tour_length">-</td>
+          </tr>
+        </tbody>
+      </table>
     </main>
     <canvas id="cities" width="800" height="800"></canvas>
   </body>

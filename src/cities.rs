@@ -1,5 +1,3 @@
-use rand::random;
-
 #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub struct City {
     pub x: f32,
@@ -12,15 +10,6 @@ impl City {
         let dy = self.y - city.y;
         (dx * dx + dy * dy).sqrt()
     }
-}
-
-pub fn generate(n: usize) -> Vec<City> {
-    (0..n)
-        .map(|_| City {
-            x: random(),
-            y: random(),
-        })
-        .collect()
 }
 
 #[cfg(test)]
