@@ -1,0 +1,2 @@
+[build]
+  command = "cargo install wasm-pack && \"$HOME/.cargo/bin/wasm-pack\" build -t no-modules"
