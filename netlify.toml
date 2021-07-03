@@ -1,2 +1,2 @@
 [build]
-  command = "cargo install wasm-pack && \"$HOME/.cargo/bin/wasm-pack\" build -t no-modules"
+  command = "npm install -g wasm-pack && wasm-pack build -t no-modules"
