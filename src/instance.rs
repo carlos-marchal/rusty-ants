@@ -1,111 +1,108 @@
 use crate::cities::City;
 use crate::edges::Edges;
-use crate::parameters::Parameters;
-use rand::random;
-
-#[derive(Clone, Debug)]
-pub struct Ant {
-    pub visited: Vec<bool>,
-    pub tour: Vec<usize>,
-}
 
 #[derive(Debug)]
 pub struct Instance {
     pub n: usize,
     pub cities: Vec<City>,
     pub edges: Edges,
+    pub tour: Vec<usize>,
     pub cycle_count: usize,
-    pub params: Parameters,
 }
 
 #[derive(Clone, Debug)]
 pub struct CycleResult {
     pub shortest_tour: Vec<usize>,
-    pub shortest_length: f32,
+    pub done: bool,
 }
 
+type Combination = (usize, usize, usize);
+
 impl Instance {
-    pub fn new(cities: &[City], params: &Parameters) -> Self {
+    pub fn new(cities: &[City]) -> Self {
         Self {
             n: cities.len(),
             cities: cities.to_vec(),
-            edges: Edges::new(&cities, params),
-            params: *params,
+            edges: Edges::new(&cities),
+            tour: (0..cities.len()).collect(),
             cycle_count: 0,
         }
     }
 
+    pub fn combinations(&self) -> impl Iterator<Item = Combination> {
+        let n = self.n;
+        (0..n)
+            .map(move |i| {
+                (i + 2..n).map(move |j| {
+                    let end = if i > 0 { n + 1 } else { n };
+                    (j + 2..end).map(move |k| (i, j, k))
+                })
+            })
+            .flatten()
+            .flatten()
+    }
+
+    pub fn try_combination(&mut self, combination: &Combination) -> bool {
+        let &(i, j, k) = combination;
+        let a = self.tour[if i == 0 { self.tour.len() - 1 } else { i }];
+        let b = self.tour[i];
+        let c = self.tour[j - 1];
+        let d = self.tour[j];
+        let e = self.tour[k - 1];
+        let f = self.tour[k % self.tour.len()];
+
+        let distances = &self.edges.distances;
+        let current = distances[a][b] + distances[c][d] + distances[e][f];
+
+        let first_try = distances[a][c] + distances[b][d] + distances[e][f];
+        if first_try < current {
+            println!("first");
+            self.tour[i..j].reverse();
+            return true;
+        }
+
+        let second_try = distances[a][b] + distances[c][e] + distances[d][f];
+        if second_try < current {
+            println!("second");
+            self.tour[j..k].reverse();
+            return true;
+        }
+
+        let third_try = distances[a][d] + distances[e][b] + distances[c][f];
+        if third_try < current {
+            println!("third");
+            self.tour[i..k].reverse();
+            return true;
+        }
+
+        let fourth_try = distances[f][b] + distances[c][d] + distances[e][a];
+        if fourth_try < current {
+            println!("fourth");
+            let reversal: Vec<usize> = self.tour[j..k]
+                .iter()
+                .chain(self.tour[i..j].iter()).cloned()
+                .collect();
+            self.tour.splice(i..k, reversal);
+            return true;
+        }
+
+        return false;
+    }
+
     pub fn cycle(&mut self) -> CycleResult {
-        let mut ants = Vec::with_capacity(self.n);
-        for i in 0..self.n {
-            let mut visited = vec![false; self.n];
-            visited[i] = true;
-            let mut tour = Vec::with_capacity(self.n + 1);
-            tour.push(i);
-            ants.push(Ant { visited, tour });
-        }
-
-        for ant in &mut ants {
-            for i in 0..self.n - 1 {
-                let city = ant.tour[i];
-                let mut desirabilities = Vec::with_capacity(self.n);
-                for j in 0..self.n {
-                    if ant.visited[j] {
-                        desirabilities.push(0.0);
-                    } else {
-                        let edge = self.edges.values[city][j];
-                        let trail_factor = edge.total_trail.powf(self.params.trail_importance);
-                        let len_factor = edge.attractiveness.powf(self.params.distance_importance);
-                        desirabilities.push(trail_factor * len_factor)
-                    }
-                }
-                let sum: f32 = desirabilities.iter().sum();
-                assert_ne!(sum, 0.0);
-                let mut probabilites = desirabilities;
-                for probability in &mut probabilites {
-                    *probability /= sum;
-                }
-                let target: f32 = random();
-                let mut accumulated = 0.0;
-                for j in 0..self.n {
-                    accumulated += probabilites[j];
-                    if target <= accumulated {
-                        ant.tour.push(j);
-                        ant.visited[j] = true;
-                        break;
-                    }
-                }
-            }
-            ant.tour.push(ant.tour[0]);
-            assert_eq!(51, ant.tour.len());
-        }
-
-        let mut costs = Vec::with_capacity(ants.len());
-        for ant in &ants {
-            let mut cost = 0.0;
-            for i in 0..self.n {
-                cost += self.edges.values[ant.tour[i]][ant.tour[i + 1]].distance;
-            }
-            costs.push(cost);
-            let delta = self.params.distance_constant / cost;
-            for i in 0..self.n {
-                self.edges
-                    .deposit_trail(ant.tour[i], ant.tour[i + 1], delta);
-            }
-        }
-        self.edges.apply_decay();
-
-        let mut min_index = 0;
-        let mut min_cost = f32::INFINITY;
-        for (index, &cost) in costs.iter().enumerate() {
-            if cost < min_cost {
-                min_index = index;
-                min_cost = cost;
+        for combination in self.combinations() {
+            let improved = self.try_combination(&combination);
+            println!("improved");
+            if improved {
+                return CycleResult {
+                    shortest_tour: self.tour.to_vec(),
+                    done: false,
+                };
             }
         }
         CycleResult {
-            shortest_length: min_cost,
-            shortest_tour: ants[min_index].tour.to_owned(),
+            shortest_tour: self.tour.to_vec(),
+            done: true,
         }
     }
 }

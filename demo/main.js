@@ -70,11 +70,11 @@ controls.addEventListener("submit", async (event) => {
     }
     if (show_pheromones.checked) {
       const trails = [];
-      for (let i = 0; i < cities.length - 1; ++i) {
-        for (let j = i + 1; j < cities.length; ++j) {
-          trails.push({ i, j, trail: result.trails[j][i] });
-        }
-      }
+      // for (let i = 0; i < cities.length - 1; ++i) {
+      //   for (let j = i + 1; j < cities.length; ++j) {
+      //     trails.push({ i, j, trail: result.trails[j][i] });
+      //   }
+      // }
       const trailValues = trails.map(({ trail }) => trail);
       const max = Math.max(...trailValues);
       for (const trail of trails) {
