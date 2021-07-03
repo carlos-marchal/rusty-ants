@@ -4,9 +4,9 @@ const canvas_context = canvas.getContext("2d");
 
 /** @typedef { wasm_bindgen.City } City */
 const CANVAS_SIZE = 800;
-const POINT_RADIUS = 3;
-const SAFE_SIZE = CANVAS_SIZE - POINT_RADIUS;
-const PADDING = POINT_RADIUS / 2;
+const POINT_RADIUS = 4;
+const PADDING = POINT_RADIUS;
+const SAFE_SIZE = CANVAS_SIZE - PADDING * 2;
 
 /** @param {City} city */
 function to_canvas_coords({ x, y }) {
