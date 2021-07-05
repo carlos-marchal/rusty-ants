@@ -79,7 +79,6 @@ controls.addEventListener("submit", async (event) => {
       })
     );
   }
-  canvas_context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
   worker.postMessage(cities);
   /** @type { wasm_bindgen.HandlerResult } */
   let result;
